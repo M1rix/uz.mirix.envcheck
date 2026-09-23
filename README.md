@@ -448,27 +448,6 @@ mvn -B -ntp clean install
 
 ---
 
-# Release through JitPack
-
-EnvCheck releases are built directly from Git tags by JitPack.
-
-For `v0.1.0`:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-Then open:
-
-```text
-https://jitpack.io/#M1rix/uz.mirix.envcheck/v0.1.0
-```
-
-JitPack will build and expose both modules for dependency resolution.
-
----
-
 # License
 
 Licensed under the [Apache License 2.0](LICENSE).
