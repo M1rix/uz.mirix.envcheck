@@ -6,7 +6,6 @@ import uz.mirix.envcheck.SecretDetector;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 final class EnvCheckSchemaFactory {
@@ -14,13 +13,12 @@ final class EnvCheckSchemaFactory {
         Set<String> profiles = new HashSet<>(Arrays.asList(activeProfiles));
         EnvSchema.Builder schema = EnvSchema.builder();
 
-        for (Map.Entry<String, EnvCheckProperties.Variable> entry : properties.getVariables().entrySet()) {
-            String name = entry.getKey();
-            EnvCheckProperties.Variable config = entry.getValue();
+        for (EnvCheckProperties.Variable config : properties.getVariables()) {
             if (!appliesToProfile(config, profiles)) {
                 continue;
             }
 
+            String name = requireName(config.getName());
             EnvRule.Builder rule = EnvRule.builder(name)
                     .required(config.isRequired())
                     .allowBlank(config.isAllowBlank())
@@ -38,6 +36,13 @@ final class EnvCheckSchemaFactory {
         }
 
         return schema.build();
+    }
+
+    private String requireName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Every envcheck.variables entry requires a non-blank name");
+        }
+        return name;
     }
 
     private boolean appliesToProfile(EnvCheckProperties.Variable variable, Set<String> activeProfiles) {
