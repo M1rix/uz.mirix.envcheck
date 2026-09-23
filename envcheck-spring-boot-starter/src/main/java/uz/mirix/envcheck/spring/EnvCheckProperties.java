@@ -1,27 +1,27 @@
 package uz.mirix.envcheck.spring;
 
 import uz.mirix.envcheck.EnvType;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class EnvCheckProperties {
     private boolean enabled = true;
     private boolean failFast = true;
-    private Map<String, Variable> variables = new LinkedHashMap<>();
+    private List<Variable> variables = new ArrayList<>();
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public boolean isFailFast() { return failFast; }
     public void setFailFast(boolean failFast) { this.failFast = failFast; }
-    public Map<String, Variable> getVariables() { return variables; }
-    public void setVariables(Map<String, Variable> variables) {
-        this.variables = variables == null ? new LinkedHashMap<>() : new LinkedHashMap<>(variables);
+    public List<Variable> getVariables() { return variables; }
+    public void setVariables(List<Variable> variables) {
+        this.variables = variables == null ? new ArrayList<>() : new ArrayList<>(variables);
     }
 
     public static class Variable {
+        private String name;
         private String property;
         private boolean required = true;
         private boolean allowBlank;
@@ -35,6 +35,8 @@ public class EnvCheckProperties {
         private BigDecimal max;
         private List<String> profiles = new ArrayList<>();
 
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
         public String getProperty() { return property; }
         public void setProperty(String property) { this.property = property; }
         public boolean isRequired() { return required; }
