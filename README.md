@@ -25,7 +25,7 @@ No agent. No collector. No external service. No runtime dashboard.
 | `envcheck-core` | Framework-independent schema and validation engine. Zero runtime dependencies. |
 | `envcheck-spring-boot-starter` | Spring Boot integration that validates after config data is loaded and before beans are created. |
 
-Baseline: **Java 17+**. The Spring starter is compiled against **Spring Boot 4.1**.
+Baseline: **Java 17+**. The Spring starter is compiled against **Spring Boot 4.1.1**.
 
 ## Install locally
 
@@ -50,36 +50,36 @@ mvn -B -ntp clean install
 ```yaml
 envcheck:
   variables:
-    DB_URL:
+    - name: DB_URL
       type: url
 
-    REDIS_HOST:
+    - name: REDIS_HOST
       type: host
       required: false
 
-    JWT_SECRET:
+    - name: JWT_SECRET
       type: string
       min-length: 32
       sensitive: true
 
-    S3_BUCKET:
+    - name: S3_BUCKET
       pattern: "^[a-z0-9.-]{3,63}$"
 
-    PAYMENT_API_URL:
+    - name: PAYMENT_API_URL
       type: url
       profiles: [prod, staging]
 ```
 
-Every declared variable is required by default. EnvCheck resolves values through Spring's `Environment`, so normal Spring precedence still applies.
+Every declared variable is required by default. EnvCheck resolves values through Spring's `Environment`, so normal Spring precedence still applies. Rules use an explicit `name` rather than a map key so names such as `JWT_SECRET` are not changed by Spring relaxed map binding.
 
 ### Validate a Spring property
 
 ```yaml
 envcheck:
   variables:
-    DATABASE_URL:
+    - name: DATABASE_URL
       property: spring.datasource.url
-      type: url
+      type: uri
 ```
 
 The report uses the stable display name `DATABASE_URL`, while the value is resolved from `spring.datasource.url`.
@@ -93,12 +93,21 @@ envcheck:
   fail-fast: false
 ```
 
+Disable EnvCheck completely when needed:
+
+```yaml
+envcheck:
+  enabled: false
+```
+
 ## Types
 
 `string`, `integer`, `long`, `boolean`, `url`, `uri`, `host`, `port`, `duration`, `size`.
 
 Examples:
 
+- URL: `https://api.example.com`
+- URI: `jdbc:postgresql://localhost:5432/app`, `https://api.example.com`
 - duration: `250ms`, `5s`, `10m`, `2h`, `1d`, `PT30S`
 - size: `500B`, `10KB`, `64MiB`, `2GB`
 - port: `1..65535`
@@ -108,27 +117,37 @@ Examples:
 ```yaml
 envcheck:
   variables:
-    JWT_SECRET:
+    - name: JWT_SECRET
       min-length: 32
       max-length: 256
 
-    WORKER_COUNT:
+    - name: WORKER_COUNT
       type: integer
       min: 1
       max: 64
 
-    APP_ENV:
+    - name: APP_ENV
       allowed-values: [dev, staging, prod]
 
-    TENANT_ID:
+    - name: TENANT_ID
       pattern: '^t_[a-z0-9]+$'
 ```
 
-Supported: `required`, `allow-blank`, `min-length`, `max-length`, `pattern`, `allowed-values`, `min`, `max`, `profiles`, `sensitive`, `property`.
+Supported: `name`, `property`, `required`, `allow-blank`, `type`, `min-length`, `max-length`, `pattern`, `allowed-values`, `min`, `max`, `profiles`, `sensitive`.
 
 ## Secret safety
 
 Sensitive values are never put into the human-readable report. The Spring starter also infers sensitivity for names containing common secret markers such as `PASSWORD`, `SECRET`, `TOKEN`, `API_KEY`, `PRIVATE_KEY`, `CREDENTIAL`, `AUTH` and `COOKIE`.
+
+If an unusual variable contains a secret, mark it explicitly:
+
+```yaml
+envcheck:
+  variables:
+    - name: SIGNING_MATERIAL
+      sensitive: true
+      min-length: 32
+```
 
 ## Framework-independent API
 
@@ -181,7 +200,7 @@ EnvRule tenant = EnvRule.builder("TENANT")
 - zero runtime dependencies in `envcheck-core`;
 - all rules are evaluated in one pass, so one restart shows the full broken-config list;
 - sensitive values never enter the human-readable report;
-- Spring validation runs before bean creation;
+- Spring validation runs after ConfigData is available and before bean creation;
 - no external infrastructure;
 - removing EnvCheck does not change application architecture.
 
