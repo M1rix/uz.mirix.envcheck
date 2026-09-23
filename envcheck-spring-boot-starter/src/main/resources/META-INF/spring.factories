@@ -1,0 +1,5 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+uz.mirix.envcheck.spring.EnvCheckEnvironmentPostProcessor
+
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+uz.mirix.envcheck.spring.EnvCheckFailureAnalyzer
