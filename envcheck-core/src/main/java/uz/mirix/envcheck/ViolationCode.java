@@ -1,0 +1,5 @@
+package uz.mirix.envcheck;
+
+public enum ViolationCode {
+    MISSING, BLANK, INVALID_TYPE, TOO_SHORT, TOO_LONG, PATTERN_MISMATCH, NOT_ALLOWED, TOO_SMALL, TOO_LARGE, CUSTOM
+}
