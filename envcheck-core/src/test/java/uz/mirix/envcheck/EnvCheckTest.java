@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EnvCheckTest {
     @Test
@@ -63,6 +65,26 @@ class EnvCheckTest {
     }
 
     @Test
+    void sensitiveRulesDoNotExposeAllowedValuesOrCustomMessages() {
+        String secret = "current-secret";
+        EnvSchema schema = EnvSchema.builder()
+                .rule(EnvRule.builder("API_TOKEN")
+                        .sensitive(true)
+                        .allowedValues("expected-secret")
+                        .validateWith(value -> Optional.of("invalid token: " + value))
+                        .build())
+                .build();
+
+        ValidationResult result = EnvCheck.validate(schema, ValueResolver.fromMap(Map.of("API_TOKEN", secret)));
+        String report = new HumanReadableReportFormatter().format(result);
+
+        assertFalse(report.contains(secret));
+        assertFalse(report.contains("expected-secret"));
+        assertFalse(report.contains("invalid token"));
+        assertTrue(report.contains("value is not allowed"));
+    }
+
+    @Test
     void optionalMissingValueIsValid() {
         EnvSchema schema = EnvSchema.builder()
                 .rule(EnvRule.builder("OPTIONAL_FEATURE").optional().build())
@@ -84,5 +106,6 @@ class EnvCheckTest {
 
         ValidationResult result = EnvCheck.validate(schema, ValueResolver.fromMap(Map.of("TENANT", "wrong")));
         assertEquals(ViolationCode.CUSTOM, result.violations().get(0).code());
+        assertEquals("must start with t_", result.violations().get(0).message());
     }
 }
